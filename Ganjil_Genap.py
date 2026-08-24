@@ -1,20 +1,26 @@
 # Program cek bilangan ganjil atau genap
 
-for i in range(100):
-    bilangan = int(input("Masukkan bilangan: "))
-
+def cek_ganjil_genap(bilangan):
     if bilangan % 2 == 0:
         print("Bilangan", bilangan, "adalah bilangan genap")
     else:
         print("Bilangan", bilangan, "adalah bilangan ganjil")
 
-    pilihan = input("Apakah ingin mengecek lagi? (y/n): ")
 
-    if pilihan.lower() == "n":
-        print("Program berhenti.")
-        break
+while True:
+    bilangan = int(input("Masukkan bilangan: "))
 
-    elif pilihan.lower() == "y":
-        continue
-    else:
-        print("Input tidak valid! Masukkan hanya y atau n.")
+    cek_ganjil_genap(bilangan)
+
+    while True:
+        pilihan = input("Apakah ingin mengecek lagi? (y/n): ").lower()
+
+        if pilihan == "y":
+            break
+        elif pilihan == "n":
+            print("Program berhenti.")
+            exit()
+        else:
+            print("Input tidak valid! Masukkan hanya y atau n.")
+
+
