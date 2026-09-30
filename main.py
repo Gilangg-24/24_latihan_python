@@ -1,307 +1,910 @@
+import tkinter as tk
+from tkinter import messagebox
 import sqlite3
+import json
+from datetime import datetime
 
-# --- KONEKSI & PERSIAPAN DATABASE SQL ---
+
+# =========================================================
+# KONFIGURASI FILE
+# =========================================================
+
+DATABASE_FILE = "database.db"
+JSON_FILE = "riwayat.json"
+
+# Menyimpan username yang sedang login
+current_username = ""
+
+
+# =========================================================
+# DATABASE SQLITE
+# =========================================================
+
 def inisialisasi_database():
-    # Menghubungkan/membuat file database SQL bernama database.db
-    conn = sqlite3.connect("database.db")
+    conn = sqlite3.connect(DATABASE_FILE)
     cursor = conn.cursor()
-    
-    # Membuat tabel 'users' jika belum ada
-    cursor.execute('''
+
+    cursor.execute("""
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT UNIQUE NOT NULL,
             password TEXT NOT NULL
         )
-    ''')
-    
-    # Menambahkan akun 'admin' default jika tabel masih kosong
-    cursor.execute("SELECT COUNT(*) FROM users")
-    if cursor.fetchone()[0] == 0:
-        cursor.execute("INSERT INTO users (username, password) VALUES (?, ?)", ("admin", "1234"))
-        conn.commit()
-        
-    conn.close()
+    """)
 
-# --- FUNGSI DATABASE USER (SQL) ---
-def registrasi_user():
-    print("\n=== BUAT USERNAME & PASSWORD BARU ===")
-    username_baru = input("Masukkan Username Baru: ")
-    password_baru = input("Masukkan Password Baru: ")
-    
-    conn = sqlite3.connect("database.db")
-    cursor = conn.cursor()
-    
-    try:
-        # Memasukkan data user baru ke tabel SQL
-        cursor.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username_baru, password_baru))
-        conn.commit()
-        print("User baru berhasil ditambahkan ke Database SQL!")
-    except sqlite3.IntegrityError:
-        print("Username sudah digunakan! Silakan pilih username lain.")
-    finally:
-        conn.close()
+    # Membuat akun admin jika belum ada
+    cursor.execute(
+        "SELECT COUNT(*) FROM users"
+    )
 
-def login():
-    print("\n=== LOGIN PENGGUNA ===")
-    username = input("Username: ")
-    password = input("Password: ")
+    jumlah_user = cursor.fetchone()[0]
 
-    conn = sqlite3.connect("database.db")
-    cursor = conn.cursor()
-    
-    # Memeriksa apakah username & password cocok di database SQL
-    cursor.execute("SELECT * FROM users WHERE username = ? AND password = ?", (username, password))
-    user = cursor.fetchone()
-    conn.close()
-
-    if user:
-        print(f"\nLogin Berhasil! Selamat datang, {username}.")
-        return True
-    else:
-        print("\nUsername atau Password salah!")
-        return False
-
-
-# --- FUNGSI PROGRAM UTAMA ---
-def cek_ganjil_genap(bilangan):
-    if bilangan % 2 == 0:
-        return "genap"
-    else:
-        return "ganjil"
-
-def cek_bilangan_prima(bilangan):
-    if bilangan < 2:
-        return False
-    for i in range(2, bilangan):
-        if bilangan % i == 0:
-            return False
-    return True
-
-def sapa(nama):
-    print("Halo,", nama)
-    print("Selamat datang di program Python!")
-
-def cek_nilai(nilai):
-    if nilai >= 75:
-        print("Status: LULUS")
-    else:
-        print("Status: TIDAK LULUS")
-
-
-# --- MENU UTAMA ---
-def main():
-    # Jalankan persiapan database SQL di awal program
-    inisialisasi_database()
-    
-    while True:
-        print("\n===== SYSTEM AUTHENTICATION (SQL) =====")
-        print("1. Login")
-        print("2. Buat Akun Baru (Registrasi)")
-        print("3. Keluar Program")
-        
-        pilihan_auth = input("Pilih menu (1-3): ")
-
-        if pilihan_auth == "1":
-            if login():
-                # Masuk ke Menu Program Utama setelah Login Berhasil
-                while True:
-                    print("\n===== MENU PROGRAM PYTHON =====")
-                    print("1. Cek Ganjil Genap")
-                    print("2. Cek Bilangan Prima")
-                    print("3. Sapa Nama")
-                    print("4. Cek Nilai")
-                    print("5. Logout")
-
-                    pilihan = input("Pilih menu (1-5): ")
-
-                    if pilihan == "1":
-                        bilangan = int(input("Masukkan bilangan: "))
-                        hasil = cek_ganjil_genap(bilangan)
-                        print("Bilangan", bilangan, "adalah", hasil)
-
-                    elif pilihan == "2":
-                        bilangan = int(input("Masukkan bilangan: "))
-                        if cek_bilangan_prima(bilangan):
-                            print("Bilangan", bilangan, "adalah bilangan prima")
-                        else:
-                            print("Bilangan", bilangan, "bukan bilangan prima")
-
-                    elif pilihan == "3":
-                        nama = input("Masukkan nama: ")
-                        sapa(nama)
-
-                    elif pilihan == "4":
-                        nilai = int(input("Masukkan nilai: "))
-                        cek_nilai(nilai)
-
-                    elif pilihan == "5":
-                        print("Anda telah Logout.")
-                        break
-
-                    else:
-                        print("Menu tidak tersedia! Silakan pilih 1-5.")
-
-        elif pilihan_auth == "2":
-            registrasi_user()
-
-        elif pilihan_auth == "3":
-            print("Terima kasih, program berhenti.")
-            break
-
-        else:
-            print("Pilihan tidak valid!")
-
-if __name__ == "__main__":
-    main()
-
-    import sqlite3
-
-# --- KONEKSI & PERSIAPAN DATABASE SQL ---
-def inisialisasi_database():
-    conn = sqlite3.connect("database.db")
-    cursor = conn.cursor()
-    
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT UNIQUE NOT NULL,
-            password TEXT NOT NULL
+    if jumlah_user == 0:
+        cursor.execute(
+            "INSERT INTO users (username, password) VALUES (?, ?)",
+            ("admin", "1234")
         )
-    ''')
-    
-    cursor.execute("SELECT COUNT(*) FROM users")
-    if cursor.fetchone()[0] == 0:
-        cursor.execute("INSERT INTO users (username, password) VALUES (?, ?)", ("admin", "1234"))
-        conn.commit()
-        
+
+    conn.commit()
     conn.close()
 
-# --- FUNGSI DATABASE USER ---
-def registrasi_user():
-    print("\n=== BUAT USERNAME & PASSWORD BARU ===")
-    username_baru = input("Masukkan Username Baru: ")
-    password_baru = input("Masukkan Password Baru: ")
-    
-    conn = sqlite3.connect("database.db")
-    cursor = conn.cursor()
-    
+
+# =========================================================
+# JSON - RIWAYAT
+# =========================================================
+
+def simpan_riwayat(fitur, input_data, hasil):
+    """
+    Menyimpan aktivitas pengguna ke file JSON.
+    """
+
+    data = []
+
+    # Membaca data JSON yang sudah ada
     try:
-        cursor.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username_baru, password_baru))
-        conn.commit()
-        print("User baru berhasil ditambahkan ke Database SQL!")
-    except sqlite3.IntegrityError:
-        print("Username sudah digunakan! Silakan pilih username lain.")
-    finally:
-        conn.close()
+        with open(JSON_FILE, "r", encoding="utf-8") as file:
+            data = json.load(file)
 
-def login():
-    print("\n=== LOGIN PENGGUNA ===")
-    username = input("Username: ")
-    password = input("Password: ")
+            # Memastikan data berbentuk list
+            if not isinstance(data, list):
+                data = []
 
-    conn = sqlite3.connect("database.db")
-    cursor = conn.cursor()
-    
-    cursor.execute("SELECT * FROM users WHERE username = ? AND password = ?", (username, password))
-    user = cursor.fetchone()
-    conn.close()
+    except (FileNotFoundError, json.JSONDecodeError):
+        data = []
 
-    if user:
-        print(f"\nLogin Berhasil! Selamat datang, {username}.")
-        return True
-    else:
-        print("\nUsername atau Password salah!")
-        return False
+    # Membuat data riwayat baru
+    riwayat_baru = {
+        "username": current_username,
+        "fitur": fitur,
+        "input": input_data,
+        "hasil": hasil,
+        "waktu": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    }
+
+    # Menambahkan riwayat
+    data.append(riwayat_baru)
+
+    # Menyimpan kembali ke JSON
+    with open(JSON_FILE, "w", encoding="utf-8") as file:
+        json.dump(
+            data,
+            file,
+            indent=4,
+            ensure_ascii=False
+        )
 
 
-# --- FUNGSI PROGRAM LAMA KAMU ---
+# =========================================================
+# FUNGSI PROGRAM
+# =========================================================
+
 def cek_ganjil_genap(bilangan):
     if bilangan % 2 == 0:
-        return "genap"
+        return "Genap"
     else:
-        return "ganjil"
+        return "Ganjil"
+
 
 def cek_bilangan_prima(bilangan):
     if bilangan < 2:
         return False
+
     for i in range(2, bilangan):
         if bilangan % i == 0:
             return False
+
     return True
 
-def sapa(nama):
-    print("Halo,", nama)
-    print("Selamat datang di program Python!")
 
 def cek_nilai(nilai):
     if nilai >= 75:
-        print("Status: LULUS")
+        return "LULUS"
     else:
-        print("Status: TIDAK LULUS")
+        return "TIDAK LULUS"
 
 
-# --- MENU UTAMA ---
-def main():
-    inisialisasi_database()
-    
-    while True:
-        print("\n===== SYSTEM AUTHENTICATION (SQL) =====")
-        print("1. Login")
-        print("2. Buat Akun Baru (Registrasi)")
-        print("3. Keluar Program")
-        
-        pilihan_auth = input("Pilih menu (1-3): ")
+# =========================================================
+# LOGIN
+# =========================================================
 
-        if pilihan_auth == "1":
-            # Jika login berhasil, baru masuk ke program kamu yang lama
-            if login():
-                while True:
-                    print("\n===== MENU PROGRAM PYTHON =====")
-                    print("1. Cek Ganjil Genap")
-                    print("2. Cek Bilangan Prima")
-                    print("3. Sapa Nama")
-                    print("4. Cek Nilai")
-                    print("5. Logout")
+def login():
 
-                    pilihan = input("Pilih menu (1-5): ")
+    global current_username
 
-                    if pilihan == "1":
-                        bilangan = int(input("Masukkan bilangan: "))
-                        hasil = cek_ganjil_genap(bilangan)
-                        print("Bilangan", bilangan, "adalah", hasil)
+    username = entry_username.get().strip()
+    password = entry_password.get()
 
-                    elif pilihan == "2":
-                        bilangan = int(input("Masukkan bilangan: "))
-                        if cek_bilangan_prima(bilangan):
-                            print("Bilangan", bilangan, "adalah bilangan prima")
-                        else:
-                            print("Bilangan", bilangan, "bukan bilangan prima")
+    # Validasi
+    if username == "" or password == "":
+        messagebox.showwarning(
+            "Peringatan",
+            "Username dan password harus diisi!"
+        )
+        return
 
-                    elif pilihan == "3":
-                        nama = input("Masukkan nama: ")
-                        sapa(nama)
+    # Koneksi database
+    conn = sqlite3.connect(DATABASE_FILE)
+    cursor = conn.cursor()
 
-                    elif pilihan == "4":
-                        nilai = int(input("Masukkan nilai: "))
-                        cek_nilai(nilai)
+    cursor.execute(
+        """
+        SELECT * FROM users
+        WHERE username = ? AND password = ?
+        """,
+        (username, password)
+    )
 
-                    elif pilihan == "5":
-                        print("Anda telah Logout.")
-                        break
+    user = cursor.fetchone()
 
-                    else:
-                        print("Menu tidak tersedia! Silakan pilih 1-5.")
+    conn.close()
 
-        elif pilihan_auth == "2":
-            registrasi_user()
+    # Jika login berhasil
+    if user:
 
-        elif pilihan_auth == "3":
-            print("Program berhenti.")
-            break
+        current_username = username
+
+        messagebox.showinfo(
+            "Login Berhasil",
+            f"Selamat datang, {username}!"
+        )
+
+        login_window.destroy()
+
+        buka_menu_utama(username)
+
+    else:
+
+        messagebox.showerror(
+            "Login Gagal",
+            "Username atau password salah!"
+        )
+
+
+# =========================================================
+# REGISTRASI
+# =========================================================
+
+def registrasi():
+
+    username = entry_reg_username.get().strip()
+    password = entry_reg_password.get()
+
+    # Validasi
+    if username == "" or password == "":
+        messagebox.showwarning(
+            "Peringatan",
+            "Username dan password harus diisi!"
+        )
+        return
+
+    # Koneksi database
+    conn = sqlite3.connect(DATABASE_FILE)
+    cursor = conn.cursor()
+
+    try:
+
+        cursor.execute(
+            """
+            INSERT INTO users (username, password)
+            VALUES (?, ?)
+            """,
+            (username, password)
+        )
+
+        conn.commit()
+
+        messagebox.showinfo(
+            "Berhasil",
+            "Akun berhasil dibuat!"
+        )
+
+        register_window.destroy()
+
+    except sqlite3.IntegrityError:
+
+        messagebox.showerror(
+            "Gagal",
+            "Username sudah digunakan!"
+        )
+
+    finally:
+
+        conn.close()
+
+
+# =========================================================
+# WINDOW REGISTRASI
+# =========================================================
+
+def buka_registrasi():
+
+    global register_window
+    global entry_reg_username
+    global entry_reg_password
+
+    register_window = tk.Toplevel(login_window)
+
+    register_window.title("Registrasi Akun")
+    register_window.geometry("350x300")
+    register_window.resizable(False, False)
+
+    tk.Label(
+        register_window,
+        text="BUAT AKUN BARU",
+        font=("Arial", 18, "bold")
+    ).pack(pady=20)
+
+    tk.Label(
+        register_window,
+        text="Username"
+    ).pack()
+
+    entry_reg_username = tk.Entry(
+        register_window,
+        width=30
+    )
+
+    entry_reg_username.pack(pady=5)
+
+    tk.Label(
+        register_window,
+        text="Password"
+    ).pack()
+
+    entry_reg_password = tk.Entry(
+        register_window,
+        width=30,
+        show="*"
+    )
+
+    entry_reg_password.pack(pady=5)
+
+    tk.Button(
+        register_window,
+        text="Daftar",
+        width=20,
+        command=registrasi
+    ).pack(pady=20)
+
+
+# =========================================================
+# MENU UTAMA
+# =========================================================
+
+def buka_menu_utama(username):
+
+    global main_window
+
+    main_window = tk.Tk()
+
+    main_window.title("Program Python")
+    main_window.geometry("500x600")
+    main_window.resizable(False, False)
+
+    tk.Label(
+        main_window,
+        text="MENU PROGRAM PYTHON",
+        font=("Arial", 20, "bold")
+    ).pack(pady=20)
+
+    tk.Label(
+        main_window,
+        text=f"Selamat datang, {username}",
+        font=("Arial", 12)
+    ).pack(pady=5)
+
+    # =====================================================
+    # TOMBOL GANJIL GENAP
+    # =====================================================
+
+    tk.Button(
+        main_window,
+        text="1. Cek Ganjil Genap",
+        width=30,
+        height=2,
+        command=menu_ganjil_genap
+    ).pack(pady=7)
+
+    # =====================================================
+    # TOMBOL BILANGAN PRIMA
+    # =====================================================
+
+    tk.Button(
+        main_window,
+        text="2. Cek Bilangan Prima",
+        width=30,
+        height=2,
+        command=menu_prima
+    ).pack(pady=7)
+
+    # =====================================================
+    # TOMBOL SAPA NAMA
+    # =====================================================
+
+    tk.Button(
+        main_window,
+        text="3. Sapa Nama",
+        width=30,
+        height=2,
+        command=menu_sapa
+    ).pack(pady=7)
+
+    # =====================================================
+    # TOMBOL CEK NILAI
+    # =====================================================
+
+    tk.Button(
+        main_window,
+        text="4. Cek Nilai",
+        width=30,
+        height=2,
+        command=menu_nilai
+    ).pack(pady=7)
+
+    # =====================================================
+    # TOMBOL RIWAYAT
+    # =====================================================
+
+    tk.Button(
+        main_window,
+        text="5. Lihat Riwayat",
+        width=30,
+        height=2,
+        command=lihat_riwayat
+    ).pack(pady=7)
+
+    # =====================================================
+    # TOMBOL LOGOUT
+    # =====================================================
+
+    tk.Button(
+        main_window,
+        text="6. Logout",
+        width=30,
+        height=2,
+        command=logout
+    ).pack(pady=7)
+
+    main_window.mainloop()
+
+
+# =========================================================
+# MENU GANJIL GENAP
+# =========================================================
+
+def menu_ganjil_genap():
+
+    window = tk.Toplevel(main_window)
+
+    window.title("Cek Ganjil Genap")
+    window.geometry("350x250")
+    window.resizable(False, False)
+
+    tk.Label(
+        window,
+        text="CEK GANJIL / GENAP",
+        font=("Arial", 16, "bold")
+    ).pack(pady=20)
+
+    tk.Label(
+        window,
+        text="Masukkan Bilangan:"
+    ).pack()
+
+    entry = tk.Entry(window)
+    entry.pack(pady=10)
+
+    def proses():
+
+        try:
+
+            bilangan = int(entry.get())
+
+            hasil = cek_ganjil_genap(bilangan)
+
+            # Simpan ke JSON
+            simpan_riwayat(
+                "Ganjil Genap",
+                bilangan,
+                hasil
+            )
+
+            messagebox.showinfo(
+                "Hasil",
+                f"Bilangan {bilangan} adalah {hasil}"
+            )
+
+        except ValueError:
+
+            messagebox.showerror(
+                "Error",
+                "Masukkan angka yang benar!"
+            )
+
+    tk.Button(
+        window,
+        text="Cek",
+        width=15,
+        command=proses
+    ).pack(pady=10)
+
+
+# =========================================================
+# MENU BILANGAN PRIMA
+# =========================================================
+
+def menu_prima():
+
+    window = tk.Toplevel(main_window)
+
+    window.title("Cek Bilangan Prima")
+    window.geometry("350x250")
+    window.resizable(False, False)
+
+    tk.Label(
+        window,
+        text="CEK BILANGAN PRIMA",
+        font=("Arial", 16, "bold")
+    ).pack(pady=20)
+
+    tk.Label(
+        window,
+        text="Masukkan Bilangan:"
+    ).pack()
+
+    entry = tk.Entry(window)
+    entry.pack(pady=10)
+
+    def proses():
+
+        try:
+
+            bilangan = int(entry.get())
+
+            if cek_bilangan_prima(bilangan):
+
+                hasil = "Bilangan Prima"
+
+            else:
+
+                hasil = "Bukan Bilangan Prima"
+
+            # Simpan ke JSON
+            simpan_riwayat(
+                "Bilangan Prima",
+                bilangan,
+                hasil
+            )
+
+            messagebox.showinfo(
+                "Hasil",
+                f"{bilangan} adalah {hasil}"
+            )
+
+        except ValueError:
+
+            messagebox.showerror(
+                "Error",
+                "Masukkan angka yang benar!"
+            )
+
+    tk.Button(
+        window,
+        text="Cek",
+        width=15,
+        command=proses
+    ).pack(pady=10)
+
+
+# =========================================================
+# MENU SAPA NAMA
+# =========================================================
+
+def menu_sapa():
+
+    window = tk.Toplevel(main_window)
+
+    window.title("Sapa Nama")
+    window.geometry("350x250")
+    window.resizable(False, False)
+
+    tk.Label(
+        window,
+        text="SAPA NAMA",
+        font=("Arial", 16, "bold")
+    ).pack(pady=20)
+
+    tk.Label(
+        window,
+        text="Masukkan Nama:"
+    ).pack()
+
+    entry = tk.Entry(window)
+    entry.pack(pady=10)
+
+    def proses():
+
+        nama = entry.get().strip()
+
+        if nama == "":
+
+            messagebox.showwarning(
+                "Peringatan",
+                "Nama harus diisi!"
+            )
 
         else:
-            print("Pilihan tidak valid!")
+
+            hasil = (
+                f"Halo, {nama}! "
+                f"Selamat datang di program Python!"
+            )
+
+            # Simpan ke JSON
+            simpan_riwayat(
+                "Sapa Nama",
+                nama,
+                hasil
+            )
+
+            messagebox.showinfo(
+                "Sapaan",
+                hasil
+            )
+
+    tk.Button(
+        window,
+        text="Sapa",
+        width=15,
+        command=proses
+    ).pack(pady=10)
+
+
+# =========================================================
+# MENU CEK NILAI
+# =========================================================
+
+def menu_nilai():
+
+    window = tk.Toplevel(main_window)
+
+    window.title("Cek Nilai")
+    window.geometry("350x250")
+    window.resizable(False, False)
+
+    tk.Label(
+        window,
+        text="CEK NILAI",
+        font=("Arial", 16, "bold")
+    ).pack(pady=20)
+
+    tk.Label(
+        window,
+        text="Masukkan Nilai:"
+    ).pack()
+
+    entry = tk.Entry(window)
+    entry.pack(pady=10)
+
+    def proses():
+
+        try:
+
+            nilai = int(entry.get())
+
+            # Validasi nilai
+            if nilai < 0 or nilai > 100:
+
+                messagebox.showwarning(
+                    "Peringatan",
+                    "Nilai harus berada di antara 0 sampai 100!"
+                )
+
+                return
+
+            hasil = cek_nilai(nilai)
+
+            # Simpan ke JSON
+            simpan_riwayat(
+                "Cek Nilai",
+                nilai,
+                hasil
+            )
+
+            messagebox.showinfo(
+                "Hasil",
+                f"Nilai: {nilai}\n"
+                f"Status: {hasil}"
+            )
+
+        except ValueError:
+
+            messagebox.showerror(
+                "Error",
+                "Masukkan nilai berupa angka!"
+            )
+
+    tk.Button(
+        window,
+        text="Cek Nilai",
+        width=15,
+        command=proses
+    ).pack(pady=10)
+
+
+# =========================================================
+# LIHAT RIWAYAT JSON
+# =========================================================
+
+def lihat_riwayat():
+
+    window = tk.Toplevel(main_window)
+
+    window.title("Riwayat Aktivitas")
+    window.geometry("650x500")
+    window.resizable(False, False)
+
+    tk.Label(
+        window,
+        text="RIWAYAT AKTIVITAS",
+        font=("Arial", 18, "bold")
+    ).pack(pady=15)
+
+    # Frame untuk text
+    frame = tk.Frame(window)
+    frame.pack(
+        fill="both",
+        expand=True,
+        padx=15,
+        pady=10
+    )
+
+    scrollbar = tk.Scrollbar(frame)
+    scrollbar.pack(
+        side="right",
+        fill="y"
+    )
+
+    text_riwayat = tk.Text(
+        frame,
+        width=75,
+        height=22,
+        yscrollcommand=scrollbar.set
+    )
+
+    text_riwayat.pack(
+        side="left",
+        fill="both",
+        expand=True
+    )
+
+    scrollbar.config(
+        command=text_riwayat.yview
+    )
+
+    # Membaca JSON
+    try:
+
+        with open(
+            JSON_FILE,
+            "r",
+            encoding="utf-8"
+        ) as file:
+
+            data = json.load(file)
+
+    except (
+        FileNotFoundError,
+        json.JSONDecodeError
+    ):
+
+        data = []
+
+    # Filter riwayat berdasarkan username
+    data_user = []
+
+    for item in data:
+
+        if item.get("username") == current_username:
+
+            data_user.append(item)
+
+    # Jika belum ada riwayat
+    if len(data_user) == 0:
+
+        text_riwayat.insert(
+            tk.END,
+            "Belum ada riwayat aktivitas."
+        )
+
+    else:
+
+        # Menampilkan dari yang terbaru
+        data_user.reverse()
+
+        for nomor, item in enumerate(
+            data_user,
+            start=1
+        ):
+
+            text_riwayat.insert(
+                tk.END,
+                f"Riwayat #{nomor}\n"
+            )
+
+            text_riwayat.insert(
+                tk.END,
+                f"Username : {item.get('username')}\n"
+            )
+
+            text_riwayat.insert(
+                tk.END,
+                f"Fitur    : {item.get('fitur')}\n"
+            )
+
+            text_riwayat.insert(
+                tk.END,
+                f"Input    : {item.get('input')}\n"
+            )
+
+            text_riwayat.insert(
+                tk.END,
+                f"Hasil    : {item.get('hasil')}\n"
+            )
+
+            text_riwayat.insert(
+                tk.END,
+                f"Waktu    : {item.get('waktu')}\n"
+            )
+
+            text_riwayat.insert(
+                tk.END,
+                "-" * 60 + "\n\n"
+            )
+
+    # Agar tidak bisa diedit
+    text_riwayat.config(
+        state="disabled"
+    )
+
+
+# =========================================================
+# LOGOUT
+# =========================================================
+
+def logout():
+
+    global current_username
+
+    jawaban = messagebox.askyesno(
+        "Logout",
+        "Apakah kamu yakin ingin logout?"
+    )
+
+    if jawaban:
+
+        current_username = ""
+
+        main_window.destroy()
+
+        buat_login()
+
+
+# =========================================================
+# LOGIN GUI
+# =========================================================
+
+def buat_login():
+
+    global login_window
+    global entry_username
+    global entry_password
+
+    login_window = tk.Tk()
+
+    login_window.title(
+        "System Authentication"
+    )
+
+    login_window.geometry(
+        "400x400"
+    )
+
+    login_window.resizable(
+        False,
+        False
+    )
+
+    tk.Label(
+        login_window,
+        text="SYSTEM AUTHENTICATION",
+        font=("Arial", 20, "bold")
+    ).pack(pady=30)
+
+    # Username
+    tk.Label(
+        login_window,
+        text="Username"
+    ).pack()
+
+    entry_username = tk.Entry(
+        login_window,
+        width=30
+    )
+
+    entry_username.pack(pady=8)
+
+    # Password
+    tk.Label(
+        login_window,
+        text="Password"
+    ).pack()
+
+    entry_password = tk.Entry(
+        login_window,
+        width=30,
+        show="*"
+    )
+
+    entry_password.pack(pady=8)
+
+    # Login
+    tk.Button(
+        login_window,
+        text="LOGIN",
+        width=25,
+        height=2,
+        command=login
+    ).pack(pady=15)
+
+    # Registrasi
+    tk.Button(
+        login_window,
+        text="BUAT AKUN BARU",
+        width=25,
+        height=2,
+        command=buka_registrasi
+    ).pack(pady=5)
+
+    # Keluar
+    tk.Button(
+        login_window,
+        text="KELUAR",
+        width=25,
+        command=login_window.destroy
+    ).pack(pady=10)
+
+    login_window.mainloop()
+
+
+# =========================================================
+# PROGRAM UTAMA
+# =========================================================
 
 if __name__ == "__main__":
-    main()
+
+    # Membuat database
+    inisialisasi_database()
+
+    # Membuka halaman login
+    buat_login()
