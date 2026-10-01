@@ -4,9 +4,14 @@ import sqlite3
 import json
 from datetime import datetime
 
+# Library pihak ketiga
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
 
 # =========================================================
-# KONFIGURASI FILE
+# KONFIGURASI
 # =========================================================
 
 DATABASE_FILE = "database.db"
@@ -50,7 +55,7 @@ def inisialisasi_database():
 
 
 # =========================================================
-# JSON - RIWAYAT
+# JSON - SIMPAN RIWAYAT
 # =========================================================
 
 def simpan_riwayat(fitur, input_data, hasil):
@@ -60,32 +65,45 @@ def simpan_riwayat(fitur, input_data, hasil):
 
     data = []
 
-    # Membaca data JSON yang sudah ada
     try:
-        with open(JSON_FILE, "r", encoding="utf-8") as file:
+        with open(
+            JSON_FILE,
+            "r",
+            encoding="utf-8"
+        ) as file:
+
             data = json.load(file)
 
-            # Memastikan data berbentuk list
             if not isinstance(data, list):
                 data = []
 
-    except (FileNotFoundError, json.JSONDecodeError):
+    except (
+        FileNotFoundError,
+        json.JSONDecodeError
+    ):
+
         data = []
 
-    # Membuat data riwayat baru
+    # Data riwayat baru
     riwayat_baru = {
         "username": current_username,
         "fitur": fitur,
         "input": input_data,
         "hasil": hasil,
-        "waktu": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        "waktu": datetime.now().strftime(
+            "%Y-%m-%d %H:%M:%S"
+        )
     }
 
-    # Menambahkan riwayat
     data.append(riwayat_baru)
 
-    # Menyimpan kembali ke JSON
-    with open(JSON_FILE, "w", encoding="utf-8") as file:
+    # Simpan ke JSON
+    with open(
+        JSON_FILE,
+        "w",
+        encoding="utf-8"
+    ) as file:
+
         json.dump(
             data,
             file,
@@ -99,17 +117,21 @@ def simpan_riwayat(fitur, input_data, hasil):
 # =========================================================
 
 def cek_ganjil_genap(bilangan):
+
     if bilangan % 2 == 0:
         return "Genap"
+
     else:
         return "Ganjil"
 
 
 def cek_bilangan_prima(bilangan):
+
     if bilangan < 2:
         return False
 
     for i in range(2, bilangan):
+
         if bilangan % i == 0:
             return False
 
@@ -117,8 +139,10 @@ def cek_bilangan_prima(bilangan):
 
 
 def cek_nilai(nilai):
+
     if nilai >= 75:
         return "LULUS"
+
     else:
         return "TIDAK LULUS"
 
@@ -134,15 +158,16 @@ def login():
     username = entry_username.get().strip()
     password = entry_password.get()
 
-    # Validasi
+    # Validasi input
     if username == "" or password == "":
+
         messagebox.showwarning(
             "Peringatan",
             "Username dan password harus diisi!"
         )
+
         return
 
-    # Koneksi database
     conn = sqlite3.connect(DATABASE_FILE)
     cursor = conn.cursor()
 
@@ -158,7 +183,7 @@ def login():
 
     conn.close()
 
-    # Jika login berhasil
+    # Login berhasil
     if user:
 
         current_username = username
@@ -189,15 +214,15 @@ def registrasi():
     username = entry_reg_username.get().strip()
     password = entry_reg_password.get()
 
-    # Validasi
     if username == "" or password == "":
+
         messagebox.showwarning(
             "Peringatan",
             "Username dan password harus diisi!"
         )
+
         return
 
-    # Koneksi database
     conn = sqlite3.connect(DATABASE_FILE)
     cursor = conn.cursor()
 
@@ -297,9 +322,18 @@ def buka_menu_utama(username):
 
     main_window = tk.Tk()
 
-    main_window.title("Program Python")
-    main_window.geometry("500x600")
-    main_window.resizable(False, False)
+    main_window.title(
+        "Program Python"
+    )
+
+    main_window.geometry(
+        "500x750"
+    )
+
+    main_window.resizable(
+        False,
+        False
+    )
 
     tk.Label(
         main_window,
@@ -314,7 +348,7 @@ def buka_menu_utama(username):
     ).pack(pady=5)
 
     # =====================================================
-    # TOMBOL GANJIL GENAP
+    # MENU 1
     # =====================================================
 
     tk.Button(
@@ -323,10 +357,10 @@ def buka_menu_utama(username):
         width=30,
         height=2,
         command=menu_ganjil_genap
-    ).pack(pady=7)
+    ).pack(pady=6)
 
     # =====================================================
-    # TOMBOL BILANGAN PRIMA
+    # MENU 2
     # =====================================================
 
     tk.Button(
@@ -335,10 +369,10 @@ def buka_menu_utama(username):
         width=30,
         height=2,
         command=menu_prima
-    ).pack(pady=7)
+    ).pack(pady=6)
 
     # =====================================================
-    # TOMBOL SAPA NAMA
+    # MENU 3
     # =====================================================
 
     tk.Button(
@@ -347,10 +381,10 @@ def buka_menu_utama(username):
         width=30,
         height=2,
         command=menu_sapa
-    ).pack(pady=7)
+    ).pack(pady=6)
 
     # =====================================================
-    # TOMBOL CEK NILAI
+    # MENU 4
     # =====================================================
 
     tk.Button(
@@ -359,10 +393,10 @@ def buka_menu_utama(username):
         width=30,
         height=2,
         command=menu_nilai
-    ).pack(pady=7)
+    ).pack(pady=6)
 
     # =====================================================
-    # TOMBOL RIWAYAT
+    # MENU 5
     # =====================================================
 
     tk.Button(
@@ -371,19 +405,43 @@ def buka_menu_utama(username):
         width=30,
         height=2,
         command=lihat_riwayat
-    ).pack(pady=7)
+    ).pack(pady=6)
 
     # =====================================================
-    # TOMBOL LOGOUT
+    # MENU 6
     # =====================================================
 
     tk.Button(
         main_window,
-        text="6. Logout",
+        text="6. Analisis Nilai (Pandas + NumPy)",
+        width=30,
+        height=2,
+        command=analisis_nilai
+    ).pack(pady=6)
+
+    # =====================================================
+    # MENU 7
+    # =====================================================
+
+    tk.Button(
+        main_window,
+        text="7. Grafik Nilai (Matplotlib)",
+        width=30,
+        height=2,
+        command=grafik_nilai
+    ).pack(pady=6)
+
+    # =====================================================
+    # MENU 8
+    # =====================================================
+
+    tk.Button(
+        main_window,
+        text="8. Logout",
         width=30,
         height=2,
         command=logout
-    ).pack(pady=7)
+    ).pack(pady=6)
 
     main_window.mainloop()
 
@@ -396,9 +454,18 @@ def menu_ganjil_genap():
 
     window = tk.Toplevel(main_window)
 
-    window.title("Cek Ganjil Genap")
-    window.geometry("350x250")
-    window.resizable(False, False)
+    window.title(
+        "Cek Ganjil Genap"
+    )
+
+    window.geometry(
+        "350x250"
+    )
+
+    window.resizable(
+        False,
+        False
+    )
 
     tk.Label(
         window,
@@ -412,15 +479,20 @@ def menu_ganjil_genap():
     ).pack()
 
     entry = tk.Entry(window)
+
     entry.pack(pady=10)
 
     def proses():
 
         try:
 
-            bilangan = int(entry.get())
+            bilangan = int(
+                entry.get()
+            )
 
-            hasil = cek_ganjil_genap(bilangan)
+            hasil = cek_ganjil_genap(
+                bilangan
+            )
 
             # Simpan ke JSON
             simpan_riwayat(
@@ -457,9 +529,18 @@ def menu_prima():
 
     window = tk.Toplevel(main_window)
 
-    window.title("Cek Bilangan Prima")
-    window.geometry("350x250")
-    window.resizable(False, False)
+    window.title(
+        "Cek Bilangan Prima"
+    )
+
+    window.geometry(
+        "350x250"
+    )
+
+    window.resizable(
+        False,
+        False
+    )
 
     tk.Label(
         window,
@@ -473,15 +554,20 @@ def menu_prima():
     ).pack()
 
     entry = tk.Entry(window)
+
     entry.pack(pady=10)
 
     def proses():
 
         try:
 
-            bilangan = int(entry.get())
+            bilangan = int(
+                entry.get()
+            )
 
-            if cek_bilangan_prima(bilangan):
+            if cek_bilangan_prima(
+                bilangan
+            ):
 
                 hasil = "Bilangan Prima"
 
@@ -524,9 +610,18 @@ def menu_sapa():
 
     window = tk.Toplevel(main_window)
 
-    window.title("Sapa Nama")
-    window.geometry("350x250")
-    window.resizable(False, False)
+    window.title(
+        "Sapa Nama"
+    )
+
+    window.geometry(
+        "350x250"
+    )
+
+    window.resizable(
+        False,
+        False
+    )
 
     tk.Label(
         window,
@@ -540,6 +635,7 @@ def menu_sapa():
     ).pack()
 
     entry = tk.Entry(window)
+
     entry.pack(pady=10)
 
     def proses():
@@ -553,24 +649,24 @@ def menu_sapa():
                 "Nama harus diisi!"
             )
 
-        else:
+            return
 
-            hasil = (
-                f"Halo, {nama}! "
-                f"Selamat datang di program Python!"
-            )
+        hasil = (
+            f"Halo, {nama}! "
+            f"Selamat datang di program Python!"
+        )
 
-            # Simpan ke JSON
-            simpan_riwayat(
-                "Sapa Nama",
-                nama,
-                hasil
-            )
+        # Simpan ke JSON
+        simpan_riwayat(
+            "Sapa Nama",
+            nama,
+            hasil
+        )
 
-            messagebox.showinfo(
-                "Sapaan",
-                hasil
-            )
+        messagebox.showinfo(
+            "Sapaan",
+            hasil
+        )
 
     tk.Button(
         window,
@@ -588,9 +684,18 @@ def menu_nilai():
 
     window = tk.Toplevel(main_window)
 
-    window.title("Cek Nilai")
-    window.geometry("350x250")
-    window.resizable(False, False)
+    window.title(
+        "Cek Nilai"
+    )
+
+    window.geometry(
+        "350x250"
+    )
+
+    window.resizable(
+        False,
+        False
+    )
 
     tk.Label(
         window,
@@ -604,25 +709,30 @@ def menu_nilai():
     ).pack()
 
     entry = tk.Entry(window)
+
     entry.pack(pady=10)
 
     def proses():
 
         try:
 
-            nilai = int(entry.get())
+            nilai = int(
+                entry.get()
+            )
 
             # Validasi nilai
             if nilai < 0 or nilai > 100:
 
                 messagebox.showwarning(
                     "Peringatan",
-                    "Nilai harus berada di antara 0 sampai 100!"
+                    "Nilai harus antara 0 sampai 100!"
                 )
 
                 return
 
-            hasil = cek_nilai(nilai)
+            hasil = cek_nilai(
+                nilai
+            )
 
             # Simpan ke JSON
             simpan_riwayat(
@@ -653,16 +763,25 @@ def menu_nilai():
 
 
 # =========================================================
-# LIHAT RIWAYAT JSON
+# LIHAT RIWAYAT
 # =========================================================
 
 def lihat_riwayat():
 
     window = tk.Toplevel(main_window)
 
-    window.title("Riwayat Aktivitas")
-    window.geometry("650x500")
-    window.resizable(False, False)
+    window.title(
+        "Riwayat Aktivitas"
+    )
+
+    window.geometry(
+        "700x500"
+    )
+
+    window.resizable(
+        False,
+        False
+    )
 
     tk.Label(
         window,
@@ -670,8 +789,8 @@ def lihat_riwayat():
         font=("Arial", 18, "bold")
     ).pack(pady=15)
 
-    # Frame untuk text
     frame = tk.Frame(window)
+
     frame.pack(
         fill="both",
         expand=True,
@@ -680,6 +799,7 @@ def lihat_riwayat():
     )
 
     scrollbar = tk.Scrollbar(frame)
+
     scrollbar.pack(
         side="right",
         fill="y"
@@ -687,7 +807,7 @@ def lihat_riwayat():
 
     text_riwayat = tk.Text(
         frame,
-        width=75,
+        width=80,
         height=22,
         yscrollcommand=scrollbar.set
     )
@@ -720,16 +840,18 @@ def lihat_riwayat():
 
         data = []
 
-    # Filter riwayat berdasarkan username
+    # Mengambil riwayat user yang sedang login
     data_user = []
 
     for item in data:
 
-        if item.get("username") == current_username:
+        if item.get(
+            "username"
+        ) == current_username:
 
             data_user.append(item)
 
-    # Jika belum ada riwayat
+    # Tidak ada data
     if len(data_user) == 0:
 
         text_riwayat.insert(
@@ -739,7 +861,7 @@ def lihat_riwayat():
 
     else:
 
-        # Menampilkan dari yang terbaru
+        # Data terbaru ditampilkan terlebih dahulu
         data_user.reverse()
 
         for nomor, item in enumerate(
@@ -782,10 +904,236 @@ def lihat_riwayat():
                 "-" * 60 + "\n\n"
             )
 
-    # Agar tidak bisa diedit
+    # Tidak bisa diedit
     text_riwayat.config(
         state="disabled"
     )
+
+
+# =========================================================
+# ANALISIS NILAI
+# MENGGUNAKAN PANDAS + NUMPY
+# =========================================================
+
+def analisis_nilai():
+
+    try:
+
+        # Membaca file JSON menggunakan Pandas
+        df = pd.read_json(
+            JSON_FILE
+        )
+
+        # Memastikan ada kolom yang diperlukan
+        if df.empty or "fitur" not in df.columns:
+
+            messagebox.showinfo(
+                "Analisis Nilai",
+                "Belum ada data nilai."
+            )
+
+            return
+
+        # Mengambil data Cek Nilai
+        df_nilai = df[
+            (df["username"] == current_username)
+            &
+            (df["fitur"] == "Cek Nilai")
+        ].copy()
+
+        if df_nilai.empty:
+
+            messagebox.showinfo(
+                "Analisis Nilai",
+                "Belum ada riwayat nilai."
+            )
+
+            return
+
+        # Mengubah input menjadi angka
+        df_nilai["input"] = pd.to_numeric(
+            df_nilai["input"],
+            errors="coerce"
+        )
+
+        # Menghapus data yang tidak valid
+        df_nilai = df_nilai.dropna(
+            subset=["input"]
+        )
+
+        if df_nilai.empty:
+
+            messagebox.showinfo(
+                "Analisis Nilai",
+                "Data nilai tidak valid."
+            )
+
+            return
+
+        # Menggunakan NumPy
+        data_nilai = np.array(
+            df_nilai["input"],
+            dtype=float
+        )
+
+        jumlah_data = len(
+            data_nilai
+        )
+
+        rata_rata = np.mean(
+            data_nilai
+        )
+
+        nilai_tertinggi = np.max(
+            data_nilai
+        )
+
+        nilai_terendah = np.min(
+            data_nilai
+        )
+
+        # Menampilkan hasil
+        messagebox.showinfo(
+            "Analisis Nilai",
+            f"Jumlah data : {jumlah_data}\n"
+            f"Rata-rata   : {rata_rata:.2f}\n"
+            f"Nilai tertinggi : {nilai_tertinggi:.0f}\n"
+            f"Nilai terendah  : {nilai_terendah:.0f}"
+        )
+
+    except (
+        FileNotFoundError,
+        ValueError,
+        TypeError
+    ):
+
+        messagebox.showinfo(
+            "Analisis Nilai",
+            "Belum ada data nilai."
+        )
+
+
+# =========================================================
+# GRAFIK NILAI
+# MENGGUNAKAN MATPLOTLIB + NUMPY + PANDAS
+# =========================================================
+
+def grafik_nilai():
+
+    try:
+
+        # Membaca JSON menggunakan Pandas
+        df = pd.read_json(
+            JSON_FILE
+        )
+
+        if df.empty:
+
+            messagebox.showinfo(
+                "Grafik Nilai",
+                "Belum ada data nilai."
+            )
+
+            return
+
+        # Filter berdasarkan user dan fitur
+        df_nilai = df[
+            (df["username"] == current_username)
+            &
+            (df["fitur"] == "Cek Nilai")
+        ].copy()
+
+        if df_nilai.empty:
+
+            messagebox.showinfo(
+                "Grafik Nilai",
+                "Belum ada data nilai."
+            )
+
+            return
+
+        # Mengubah input menjadi angka
+        df_nilai["input"] = pd.to_numeric(
+            df_nilai["input"],
+            errors="coerce"
+        )
+
+        # Menghapus data tidak valid
+        df_nilai = df_nilai.dropna(
+            subset=["input"]
+        )
+
+        if df_nilai.empty:
+
+            messagebox.showinfo(
+                "Grafik Nilai",
+                "Data nilai tidak valid."
+            )
+
+            return
+
+        # Data nilai menggunakan NumPy
+        nilai = np.array(
+            df_nilai["input"],
+            dtype=float
+        )
+
+        # Nomor percobaan
+        percobaan = np.arange(
+            1,
+            len(nilai) + 1
+        )
+
+        # Membuat grafik dengan Matplotlib
+        plt.figure(
+            figsize=(8, 5)
+        )
+
+        plt.plot(
+            percobaan,
+            nilai,
+            marker="o"
+        )
+
+        plt.title(
+            f"Grafik Nilai - {current_username}"
+        )
+
+        plt.xlabel(
+            "Percobaan"
+        )
+
+        plt.ylabel(
+            "Nilai"
+        )
+
+        plt.xticks(
+            percobaan
+        )
+
+        plt.ylim(
+            0,
+            100
+        )
+
+        plt.grid(
+            True
+        )
+
+        plt.tight_layout()
+
+        plt.show()
+
+    except (
+        FileNotFoundError,
+        ValueError,
+        TypeError
+    ):
+
+        messagebox.showinfo(
+            "Grafik Nilai",
+            "Belum ada data nilai."
+        )
 
 
 # =========================================================
@@ -852,7 +1200,9 @@ def buat_login():
         width=30
     )
 
-    entry_username.pack(pady=8)
+    entry_username.pack(
+        pady=8
+    )
 
     # Password
     tk.Label(
@@ -866,7 +1216,9 @@ def buat_login():
         show="*"
     )
 
-    entry_password.pack(pady=8)
+    entry_password.pack(
+        pady=8
+    )
 
     # Login
     tk.Button(
@@ -875,7 +1227,9 @@ def buat_login():
         width=25,
         height=2,
         command=login
-    ).pack(pady=15)
+    ).pack(
+        pady=15
+    )
 
     # Registrasi
     tk.Button(
@@ -884,7 +1238,9 @@ def buat_login():
         width=25,
         height=2,
         command=buka_registrasi
-    ).pack(pady=5)
+    ).pack(
+        pady=5
+    )
 
     # Keluar
     tk.Button(
@@ -892,7 +1248,9 @@ def buat_login():
         text="KELUAR",
         width=25,
         command=login_window.destroy
-    ).pack(pady=10)
+    ).pack(
+        pady=10
+    )
 
     login_window.mainloop()
 
@@ -906,5 +1264,5 @@ if __name__ == "__main__":
     # Membuat database
     inisialisasi_database()
 
-    # Membuka halaman login
+    # Menjalankan login
     buat_login()
